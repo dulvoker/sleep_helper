@@ -1,4 +1,5 @@
 from ..schemas import SleepInput, SleepOutput
+from datetime import datetime, timedelta
 
 
 def _score_duration(tst_min: int) -> float:
@@ -136,11 +137,24 @@ def _get_recommendations(
     return recommendations
 
 
-def calculate_sleep_score(sleep_input: SleepInput) -> SleepOutput:
-    if sleep_input.time_in_bed_min <= 0:
-        raise ValueError("Time in bed must be greater than 0")
+def _calculate_time_in_bed_min(bedtime: str, wake_time: str) -> int:
+    bedtime_dt = datetime.strptime(bedtime, '%H:%M')
+    wake_dt = datetime.strptime(wake_time, '%H:%M')
     
-    efficiency = sleep_input.tst_min / sleep_input.time_in_bed_min if sleep_input.time_in_bed_min > 0 else 0
+    if wake_dt < bedtime_dt:
+        wake_dt += timedelta(days=1)
+    
+    time_diff = wake_dt - bedtime_dt
+    return int(time_diff.total_seconds() / 60)
+
+
+def calculate_sleep_score(sleep_input: SleepInput) -> SleepOutput:
+    time_in_bed_min = _calculate_time_in_bed_min(sleep_input.bedtime, sleep_input.wake_time)
+    
+    if time_in_bed_min <= 0:
+        raise ValueError("Wake time must be after bedtime")
+    
+    efficiency = sleep_input.tst_min / time_in_bed_min if time_in_bed_min > 0 else 0
     
     deep_pct = None
     rem_pct = None
@@ -151,7 +165,7 @@ def calculate_sleep_score(sleep_input: SleepInput) -> SleepOutput:
             rem_pct = sleep_input.rem_min / sleep_input.tst_min
     
     duration_score = _score_duration(sleep_input.tst_min)
-    efficiency_score = _score_efficiency(sleep_input.tst_min, sleep_input.time_in_bed_min)
+    efficiency_score = _score_efficiency(sleep_input.tst_min, time_in_bed_min)
     continuity_score = _score_continuity(sleep_input.waso_min, sleep_input.awakenings)
     stages_score = _score_sleep_stages(sleep_input.deep_min, sleep_input.rem_min, sleep_input.tst_min)
     
