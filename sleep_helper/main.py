@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sleep_helper.database import Base, engine
+from .database import Base, engine
+from .schemas import SleepInput, SleepOutput
 
 
 app = FastAPI(
@@ -27,6 +28,18 @@ async def startup_event():
 async def root():
     return {"message": "Welcome to Sleep Helper API"}
 
+
+@app.post("/check-sleep-quality")
+async def check_sleep_quality(sleep_input: SleepInput) -> SleepOutput:
+
+    return SleepOutput(
+        sleep_quality="good",
+        sleep_quality_score=85,
+        sleep_quality_description="You slept well last night",
+        sleep_quality_recommendations=["Try to go to bed earlier", "Try to wake up at the same time every day"],
+        sleep_quality_score_explanation="You slept well last night",
+        sleep_quality_score_recommendations=["Try to go to bed earlier", "Try to wake up at the same time every day"]
+    )
 
 @app.get("/health")
 async def health_check():
