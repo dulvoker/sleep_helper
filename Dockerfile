@@ -15,5 +15,5 @@ COPY . .
 
 EXPOSE 8000
 
-CMD ["uvicorn", "sleep_helper.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--reload-dir", "/app/sleep_helper"]
+CMD ["sh", "-c", "uvicorn sleep_helper.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
 
