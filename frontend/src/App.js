@@ -1,7 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+function getApiUrl() {
+  const metaTag = document.querySelector('meta[name="api-url"]');
+  const metaVal = metaTag?.content?.trim();
+  if (metaVal) {
+    console.log('[API_URL] meta:', metaVal);
+    return metaVal;
+  }
+
+  if (process.env.REACT_APP_API_URL) {
+    console.log('[API_URL] REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    return process.env.REACT_APP_API_URL;
+  }
+
+  if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
+    console.log('[API_URL] VITE_API_URL:', import.meta.env.VITE_API_URL);
+    return import.meta.env.VITE_API_URL;
+  }
+
+  console.warn('[API_URL] fallback → http://localhost:8000');
+  return 'http://localhost:8000';
+}
+
+export const API_URL = getApiUrl();
+
 
 function TimePicker({ value, onChange, name, label }) {
   const [isOpen, setIsOpen] = useState(false);
