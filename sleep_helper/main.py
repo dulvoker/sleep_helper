@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .database import Base, engine
+from .db import Base, engine, is_database_available
 from .schemas import SleepInput, SleepOutput
 from .core.sleep_score import calculate_sleep_score
+import logging
 
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="Sleep Helper API",
@@ -22,7 +24,14 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def startup_event():
-    Base.metadata.create_all(bind=engine)
+    if is_database_available() and engine is not None:
+        try:
+            Base.metadata.create_all(bind=engine)
+            logger.info("Database tables initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize database tables: {e}")
+    else:
+        logger.info("Running without database - database initialization skipped")
 
 
 @app.get("/")
