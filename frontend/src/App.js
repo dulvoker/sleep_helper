@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
-const API_URL = 'http://localhost:8000';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-// Custom Time Picker Component
 function TimePicker({ value, onChange, name, label }) {
   const [isOpen, setIsOpen] = useState(false);
   
-  // Convert 24-hour format (HH:MM) to 12-hour format with AM/PM
   const parseTime24To12 = (time24) => {
     if (!time24) return { hour: 12, minute: 0, period: 'AM' };
     const [hours, minutes] = time24.split(':').map(Number);
@@ -17,7 +15,6 @@ function TimePicker({ value, onChange, name, label }) {
     return { hour: hour12, minute: minutes || 0, period };
   };
 
-  // Convert 12-hour format to 24-hour format (HH:MM)
   const convert12To24 = (hour, minute, period) => {
     let hour24 = hour;
     if (period === 'PM' && hour !== 12) hour24 = hour + 12;
@@ -27,7 +24,6 @@ function TimePicker({ value, onChange, name, label }) {
 
   const { hour, minute, period } = parseTime24To12(value);
   
-  // Initialize local state from value, or use defaults
   const getInitialState = () => {
     if (value) {
       const parsed = parseTime24To12(value);
@@ -41,7 +37,6 @@ function TimePicker({ value, onChange, name, label }) {
   const [localMinute, setLocalMinute] = useState(initialState.minute);
   const [localPeriod, setLocalPeriod] = useState(initialState.period);
   
-  // Update local state when value prop changes
   useEffect(() => {
     const parsed = parseTime24To12(value);
     setLocalHour(parsed.hour);
@@ -192,8 +187,6 @@ function App() {
     setResult(null);
 
     try {
-      // Convert time format from HH:MM (HTML time input) to HH:MM (backend expects)
-      // HTML time input already returns HH:MM format, so we can use it directly
       const payload = {
         bedtime: formData.bedtime,
         wake_time: formData.wake_time,
